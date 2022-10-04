@@ -2,7 +2,7 @@
 //  LoanTrackerApp.swift
 //  LoanTracker
 //
-//  Created by ogisq on 9/27/22.
+//  Created by Othmar Gispert on 9/27/22.
 //
 
 import SwiftUI
@@ -13,7 +13,7 @@ struct LoanTrackerApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LoansView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
