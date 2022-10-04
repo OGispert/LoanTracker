@@ -10,6 +10,7 @@ import SwiftUI
 final class PaymentViewModel: ObservableObject {
 
     @Published var allPayments: [Payment] = []
+    @Published var isNaviagtionLinkActive = false
 
     var loan: Loan
 

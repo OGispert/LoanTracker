@@ -32,6 +32,6 @@ final class AddLoanViewModel: ObservableObject {
     }
 
     func isValidForm() -> Bool {
-        name.isEmpty || amount.isEmpty
+        !name.isEmpty && !amount.isEmpty
     }
 }

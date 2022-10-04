@@ -32,7 +32,7 @@ struct AddLoanView: View {
                         .fontWeight(.semibold)
                         .frame(width: 80, height: 40)
                 }
-                .disabled(viewModel.isValidForm())
+                .disabled(!viewModel.isValidForm())
             }
             .padding()
 

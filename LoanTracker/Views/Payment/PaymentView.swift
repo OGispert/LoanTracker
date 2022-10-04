@@ -28,7 +28,8 @@ struct PaymentView: View {
 
             List {
                 ForEach(viewModel.allPayments) { payment in
-                    Text(payment.amount.toCurrency)
+                    PaymentCellView(amount: payment.amount,
+                                    date: payment.date ?? Date())
                 }
             }
             .listStyle(.plain)
@@ -36,16 +37,21 @@ struct PaymentView: View {
         .onAppear(perform: {
             viewModel.fetchAllPayments()
         })
-        .navigationTitle("\(viewModel.loan.name ?? "")")
+        .navigationTitle(viewModel.loan.name ?? "Loan")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    print("add payment")
+                    viewModel.isNaviagtionLinkActive.toggle()
                 } label: {
                     Image(systemName: "plus")
                         .font(.title)
                 }
             }
+        }
+        NavigationLink(isActive: $viewModel.isNaviagtionLinkActive) {
+            AddPaymentView(viewModel: AddPaymentViewModel(loanId: viewModel.loan.id ?? ""))
+        } label: {
+            Text("")
         }
     }
 }
