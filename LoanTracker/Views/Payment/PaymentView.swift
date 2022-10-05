@@ -24,18 +24,29 @@ struct PaymentView: View {
                 .cornerRadius(10)
                 .padding()
 
-            Text("Expected to finish")
+            Text(viewModel.expectedToFinishOn)
 
             List {
-                ForEach(viewModel.allPayments) { payment in
-                    PaymentCellView(amount: payment.amount,
-                                    date: payment.date ?? Date())
+                ForEach(viewModel.allPaymentObjects, id: \.sectionName) { object in
+                    Section {
+                        ForEach(object.sectionObject) { payment in
+                            PaymentCellView(amount: payment.amount,
+                                            date: payment.date ?? Date())
+                        }
+                        .onDelete { index in
+                            viewModel.deletePayment(at: index)
+                        }
+                    } header: {
+                        Text("\(object.sectionName) - \(object.sectionTotal.toCurrency)")
+                    }
                 }
             }
             .listStyle(.plain)
         }
         .onAppear(perform: {
             viewModel.fetchAllPayments()
+            viewModel.calculateDaysToEnd()
+            viewModel.separateByYear()
         })
         .navigationTitle(viewModel.loan.name ?? "Loan")
         .toolbar {

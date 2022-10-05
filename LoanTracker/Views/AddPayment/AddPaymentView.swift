@@ -2,7 +2,7 @@
 //  AddPaymentView.swift
 //  LoanTracker
 //
-//  Created by ogisq on 10/4/22.
+//  Created by Othmar Gispert on 10/4/22.
 //
 
 import SwiftUI
