@@ -18,32 +18,38 @@ struct PaymentView: View {
                 .foregroundColor(.secondary)
                 .padding(.top)
 
-            Rectangle()
+            ProgressBar(value: viewModel.progressBarValue(),
+                        leftAmount: viewModel.totalDue(),
+                        paidAmount: viewModel.totalPaid())
                 .frame(height: 30)
-                .foregroundColor(.blue)
-                .cornerRadius(10)
-                .padding()
+                .padding(.horizontal)
 
             Text(viewModel.expectedToFinishOn)
+                .foregroundColor(viewModel.expectedLabelColor)
 
             List {
-                ForEach(viewModel.allPaymentObjects, id: \.sectionName) { object in
+                ForEach(viewModel.allPaymentObjects, id: \.sectionName) { paymentObj in
                     Section {
-                        ForEach(object.sectionObject) { payment in
+                        ForEach(paymentObj.sectionObject) { payment in
                             PaymentCellView(amount: payment.amount,
                                             date: payment.date ?? Date())
+                                .onTapGesture {
+                                    viewModel.isNavigationLinkActive = true
+                                    viewModel.selectedPayment = payment
+                                }
                         }
                         .onDelete { index in
-                            viewModel.deletePayment(at: index)
+                            viewModel.deletePayment(paymentObj, at: index)
                         }
                     } header: {
-                        Text("\(object.sectionName) - \(object.sectionTotal.toCurrency)")
+                        Text("\(paymentObj.sectionName) - \(paymentObj.sectionTotal.toCurrency)")
                     }
                 }
             }
             .listStyle(.plain)
         }
         .onAppear(perform: {
+            viewModel.selectedPayment = nil
             viewModel.fetchAllPayments()
             viewModel.calculateDaysToEnd()
             viewModel.separateByYear()
@@ -52,15 +58,15 @@ struct PaymentView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    viewModel.isNaviagtionLinkActive.toggle()
+                    viewModel.isNavigationLinkActive.toggle()
                 } label: {
                     Image(systemName: "plus")
                         .font(.title)
                 }
             }
         }
-        NavigationLink(isActive: $viewModel.isNaviagtionLinkActive) {
-            AddPaymentView(viewModel: AddPaymentViewModel(loanId: viewModel.loan.id ?? ""))
+        NavigationLink(isActive: $viewModel.isNavigationLinkActive) {
+            AddPaymentView(viewModel: AddPaymentViewModel(paymentToEdit: viewModel.selectedPayment, loanId: viewModel.loan.id ?? ""))
         } label: {
             Text("")
         }

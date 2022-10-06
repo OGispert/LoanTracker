@@ -23,7 +23,7 @@ struct AddPaymentView: View {
 
             Section {
                 Button {
-                    viewModel.createNewPayment()
+                    viewModel.savePayment()
                     dismiss()
                 } label: {
                     Text("Save")
@@ -33,12 +33,15 @@ struct AddPaymentView: View {
             }
             .disabled(!viewModel.isFormValid())
         }
-        .navigationTitle("Add Payment")
+        .onAppear(perform: {
+            viewModel.setupEditingView()
+        })
+        .navigationTitle(viewModel.payment != nil ? "Edit Payment" : "Add Payment")
     }
 }
 
 struct AddPaymentView_Previews: PreviewProvider {
     static var previews: some View {
-        AddPaymentView(viewModel: AddPaymentViewModel(loanId: "123"))
+        AddPaymentView(viewModel: AddPaymentViewModel(paymentToEdit: nil, loanId: "123"))
     }
 }

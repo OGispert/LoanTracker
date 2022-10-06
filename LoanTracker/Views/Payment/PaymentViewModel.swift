@@ -11,8 +11,10 @@ final class PaymentViewModel: ObservableObject {
 
     @Published var allPayments: [Payment] = []
     @Published var allPaymentObjects: [PaymentObject] = []
-    @Published var isNaviagtionLinkActive = false
+    @Published var isNavigationLinkActive = false
     @Published var expectedToFinishOn = ""
+    @Published var selectedPayment: Payment?
+    @Published var expectedLabelColor: Color = .primary
 
     var loan: Loan
 
@@ -24,14 +26,27 @@ final class PaymentViewModel: ObservableObject {
         allPayments = PersistenceController.shared.fetchPayments(for: loan.id ?? "")
     }
 
-    func deletePayment(at index: IndexSet) {
+    func deletePayment(_ paymentObject: PaymentObject, at index: IndexSet) {
         guard let indexRow = index.first else { return }
-        PersistenceController.shared.context.delete(allPayments[indexRow])
+        let paymentToDelete = paymentObject.sectionObject[indexRow]
+        PersistenceController.shared.context.delete(paymentToDelete)
         PersistenceController.shared.saveContext()
+
+        fetchAllPayments()
+        calculateDaysToEnd()
+        separateByYear()
     }
 
     func totalPaid() -> Double {
-        return allPayments.reduce(0, { $0 + $1.amount })
+        allPayments.reduce(0, { $0 + $1.amount })
+    }
+
+    func totalDue() -> Double {
+        loan.totalAmount - totalPaid()
+    }
+
+    func progressBarValue() -> Double {
+        totalPaid() / loan.totalAmount
     }
 
     func calculateDaysToEnd() {
@@ -40,11 +55,18 @@ final class PaymentViewModel: ObservableObject {
                                                               from: loan.startDate ?? Date(),
                                                               to: Date()).day
 
-        if totalPassedDays == 0 || totalAmountPaid == 0 {
+        if totalAmountPaid == 0 {
             expectedToFinishOn = ""
             return
         }
 
+        if totalAmountPaid == loan.totalAmount {
+            expectedToFinishOn = "Congratulations!! Your Loan was paid."
+            expectedLabelColor = .green
+            return
+        }
+
+        // TODO - Fix prediction logic 
         let didPayPerDay = totalAmountPaid / Double(totalPassedDays ?? 0)
         let daysLeftToFinish = (loan.totalAmount - totalAmountPaid) / didPayPerDay
         let newDate = Calendar.current.date(byAdding: .day,
@@ -56,10 +78,14 @@ final class PaymentViewModel: ObservableObject {
             return
         }
         expectedToFinishOn = "Expected to finish by \(newDate.longDate)"
+
+        expectedLabelColor = newDate > (loan.dueDate ?? Date()) ? .red : .primary
     }
 
     func separateByYear() {
         allPaymentObjects = []
+
+        allPayments.sort(by: { ($0.date ?? Date()) > ($1.date ?? Date()) })
 
         let dict = Dictionary(grouping: allPayments, by: { $0.date?.yearNumber })
 
@@ -77,6 +103,7 @@ final class PaymentViewModel: ObservableObject {
         }
     }
 }
+
 
 struct PaymentObject: Equatable {
     var sectionName: String!
